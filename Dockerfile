@@ -7,8 +7,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./app ./app
 
-# Открываем порт для FastAPI (если нужен веб-интерфейс)
-EXPOSE 8000
-
-# Запускаем бота (НЕ FastAPI!)
-CMD ["python", "-m", "app.bot.alerts"]
+# Запускаем Celery Worker + Beat (в одном процессе)
+CMD ["celery", "-A", "app.tasks", "worker", "--loglevel=info", "--beat"]

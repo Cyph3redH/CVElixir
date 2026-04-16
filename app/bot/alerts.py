@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-MY_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")  # ТВОЙ личный ID
+MY_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")  # личный ID
 
-# 🔥 БЕЛЫЙ СПИСОК (пока только ты)
+# БЕЛЫЙ СПИСОК
 ALLOWED_USERS = [int(MY_CHAT_ID)]  # Можно добавить ещё ID через запятую
 
 async def send_alert(message: str, target_chat_id: int = None):
@@ -39,7 +39,7 @@ async def send_alert(message: str, target_chat_id: int = None):
 
 # Тест
 if __name__ == "__main__":
-    asyncio.run(send_alert("🚨 <b>CVElixir запущен!</b>"))
+    # asyncio.run(send_alert("<b>CVElixir запущен!</b>"))
     
     # Бесконечное ожидание (чтобы контейнер не падал)
     import time
