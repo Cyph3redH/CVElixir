@@ -6,17 +6,42 @@ from dotenv import load_dotenv
 load_dotenv()
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+MY_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")  # ТВОЙ личный ID
 
-async def send_alert(message: str):
-    """Отправляет сообщение в Telegram."""
-    if not TOKEN or not CHAT_ID:
-        print("❌ Токен или Chat ID не заданы в .env")
+# 🔥 БЕЛЫЙ СПИСОК (пока только ты)
+ALLOWED_USERS = [int(MY_CHAT_ID)]  # Можно добавить ещё ID через запятую
+
+async def send_alert(message: str, target_chat_id: int = None):
+    """
+    Отправляет сообщение. Если target_chat_id не указан — шлёт всем в ALLOWED_USERS.
+    Если указан — проверяет, есть ли он в белом списке.
+    """
+    if not TOKEN:
+        print("Токен не задан в .env")
         return
     
     bot = Bot(token=TOKEN)
-    await bot.send_message(chat_id=CHAT_ID, text=message, parse_mode='HTML')
+    
+    # Если цель не указана — шлём всем разрешённым
+    if target_chat_id is None:
+        for chat_id in ALLOWED_USERS:
+            await bot.send_message(chat_id=chat_id, text=message, parse_mode='HTML')
+            print(f"Отправлено для {chat_id}")
+        return
+    
+    # Если цель указана — проверяем, есть ли она в белом списке
+    if target_chat_id not in ALLOWED_USERS:
+        print(f"Доступ запрещён для {target_chat_id}")
+        return
+    
+    await bot.send_message(chat_id=target_chat_id, text=message, parse_mode='HTML')
+    print(f"Отправлено для {target_chat_id}")
 
 # Тест
 if __name__ == "__main__":
     asyncio.run(send_alert("🚨 <b>CVElixir запущен!</b>"))
+    
+    # Бесконечное ожидание (чтобы контейнер не падал)
+    import time
+    while True:
+        time.sleep(3600)
