@@ -22,7 +22,7 @@ async def _async_check():
             print(f"⏭️ CVE {cve_id} уже отправлялась, пропускаем")
             continue
         
-        msg = f"⚠️ Обнаружена критическая уязвимость в базе NVD</b>\n\n"
+        msg = f"⚠️ Обнаружена критическая уязвимость в базе NVD\n\n"
         msg += f"📛 {cve['cve_id']}\n"
         msg += f"❗ CVSS: {cve['cvss']}\n"
         msg += f"🔗 {cve['link']}"
