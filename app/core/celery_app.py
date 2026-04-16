@@ -7,8 +7,8 @@ REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
 # Создаём Celery приложение
 app = Celery(
     'cvelixir',
-    broker=f'redis://{REDIS_PASSWORD}redis:6379/0',
-    backend=f'redis://{REDIS_PASSWORD}redis:6379/0'
+    broker=f'redis://:{REDIS_PASSWORD}@redis:6379/0',
+    backend=f'redis://:{REDIS_PASSWORD}@redis:6379/0'
 )
 
 # Настройка расписания
