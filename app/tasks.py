@@ -23,9 +23,9 @@ async def _async_check():
             continue
         
         msg = f"⚠️ Обнаружена критическая уязвимость в базе NVD</b>\n\n"
-        msg += f"📛 <b>{html.escape(cve['cve_id'])}</b>\n"
-        msg += f"❗ CVSS: {html.escape(str(cve['cvss']))}\n"
-        msg += f"🔗 {html.escape(cve['link'])}"
+        msg += f"📛 {cve['cve_id']}\n"
+        msg += f"❗ CVSS: {cve['cvss']}\n"
+        msg += f"🔗 {cve['link']}"
         await send_alert(msg)
         # Сохранение в кэш
         await mark_cve_sent(cve_id)
@@ -39,7 +39,7 @@ async def _async_check():
         if await is_cve_sent(link):
             continue
 
-        msg = f"⚠️ <b>Опасная новость на Hacker News, просьба ознакомиться</b>\n\n"
+        msg = f"⚠️ Опасная новость на Hacker News, просьба ознакомиться\n\n"
         msg += f"📌 {article['title']}\n"
         msg += f"🔗 {article['link']}"
         await send_alert(msg)
