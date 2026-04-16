@@ -9,7 +9,7 @@ from app.parser.hackernews import fetch_dangerous_articles
 def check_all_sources():
     """Собирает данные со всех парсеров новостей (NVD, TheHackersNews)"""
     loop = asyncio.get_event_loop
-    loop.run_until_complite(_async_check())
+    loop.run_until_complete(_async_check())
 
 async def _async_check():
     # Данные от NVD
