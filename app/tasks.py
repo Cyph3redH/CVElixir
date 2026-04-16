@@ -4,11 +4,12 @@ from app.bot.alerts import send_alert
 from app.parser.nvd import search_critical_cve
 from app.parser.hackernews import fetch_dangerous_articles
 from app.core.redis_client import is_cve_sent, mark_cve_sent
+import html
 
 @app.task
 def check_all_sources():
     """Собирает данные со всех парсеров новостей (NVD, TheHackersNews)"""
-    loop = asyncio.get_event_loop
+    loop = asyncio.get_event_loop()
     loop.run_until_complete(_async_check())
 
 async def _async_check():
@@ -22,9 +23,9 @@ async def _async_check():
             continue
         
         msg = f"⚠️ Обнаружена критическая уязвимость в базе NVD</b>\n\n"
-        msg += f"📛 <b>{cve['cve_id']}</b>\n"
-        msg += f"❗ CVSS: {cve['cvss']}\n"
-        msg += f"🔗 {cve['link']}"
+        msg += f"📛 <b>{html.escape(cve['cve_id'])}</b>\n"
+        msg += f"❗ CVSS: {html.escape(str(cve['cvss']))}\n"
+        msg += f"🔗 {html.escape(cve['link'])}"
         await send_alert(msg)
         # Сохранение в кэш
         await mark_cve_sent(cve_id)
