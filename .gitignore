@@ -1,0 +1,43 @@
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+
+# Environment Variables (СЕКРЕТЫ!)
+.env
+*.env
+!.env.example
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+*.log
+*.pid
+
+# Databases
+*.db
+*.sqlite3
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project Specific
+logs/
+*.pem
+*.key
+*.crt
