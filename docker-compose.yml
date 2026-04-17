@@ -6,6 +6,8 @@ services:
     restart: unless-stopped
     volumes:
       - redis_data:/data
+    networks:
+      - cvelixir_net
 
   kafka:
     image: apache/kafka:3.7.0
@@ -27,6 +29,8 @@ services:
       "
     volumes:
       - kafka_data:/var/lib/kafka/data
+    networks:
+      - cvelixir_net
 
   cvelixir:
     build: .
@@ -39,11 +43,19 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - KAFKA_BROKER=kafka:9092
     depends_on:
-      - redis
-      - kafka
+      redis:
+        condition: service_started
+      kafka:
+        condition: service_started
     volumes:
       - ./logs:/app/logs
+    networks:
+      - cvelixir_net
 
 volumes:
   kafka_data:
   redis_data:
+
+networks:
+  cvelixir_net:
+    driver: bridge
