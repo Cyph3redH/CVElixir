@@ -3,11 +3,15 @@ import json
 import os
 from app.parser.hackernews import fetch_dangerous_articles
 
-producer = Producer({
-    'bootstrap.servers': os.getenv('KAFKA_BROKER', 'kafka:9092'),
-})
+def get_producer():
+    """Создает и возвращает продюсер Kafka"""
+    config = {
+        'bootstrap.servers': os.getenv('KAFKA_BROKER', 'host.docker.internal:9092'),
+    }
+    return Producer(config)
 
 def publish_hackernews():
+    producer = get_producer()
     danger_news = fetch_dangerous_articles
     for news in danger_news:
         event = {

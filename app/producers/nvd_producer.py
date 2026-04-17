@@ -3,11 +3,15 @@ import json
 import os
 from app.parser.nvd import search_critical_cve
 
-producer = Producer({
-    'bootstrap.servers': os.getenv('KAFKA_BROKER', 'kafka:9092'),
-})
+def get_producer():
+    """Создает и возвращает продюсер Kafka"""
+    config = {
+        'bootstrap.servers': os.getenv('KAFKA_BROKER', 'host.docker.internal:9092'),
+    }
+    return Producer(config)
 
 def publish_nvd():
+    producer = get_producer()
     cves = search_critical_cve()
     for cve in cves:
         event = {
