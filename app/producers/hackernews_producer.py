@@ -4,7 +4,7 @@ import os
 from app.parser.hackernews import fetch_dangerous_articles
 
 producer = Producer({
-    'bootstrap.servers': 'kafka:9092',
+    'bootstrap.servers': os.getenv('KAFKA_BROKER', 'kafka:9092'),
 })
 
 def publish_hackernews():
