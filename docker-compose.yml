@@ -22,22 +22,39 @@ services:
     ports:
       - "9092:9092"
     environment:
-      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/secrets/kafka_server_jaas.conf"
+      # 🔥 Убираем KAFKA_OPTS полностью
+      # KAFKA_OPTS: "..."
+      
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      
+      # 🔥 КРИТИЧЕСКИ ВАЖНО: Отключаем SASL для Zookeeper
+      KAFKA_ZOOKEEPER_SASL_ENABLED: "false"
       KAFKA_ZOOKEEPER_SET_ACL: "false"
+      
+      # Настройки для клиентов Kafka
       KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://localhost:9092
       KAFKA_LISTENERS: SASL_PLAINTEXT://0.0.0.0:9092
       KAFKA_SECURITY_INTER_BROKER_PROTOCOL: SASL_PLAINTEXT
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
       KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      
+      # SASL для клиентов (через inline конфиг)
+      KAFKA_LISTENER_NAME_SASL_PLAINTEXT_PLAIN_SASL_JAAS_CONFIG: |
+        org.apache.kafka.common.security.plain.PlainLoginModule required \
+        username="admin" \
+        password="${KAFKA_ADMIN_PASSWORD}" \
+        user_admin="${KAFKA_ADMIN_PASSWORD}" \
+        user_producer="${KAFKA_PRODUCER_PASSWORD}" \
+        user_consumer="${KAFKA_CONSUMER_PASSWORD}";
+      
       KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
       KAFKA_SUPER_USERS: "User:admin"
-    volumes:
-      - ./kafka_server_jaas.conf:/etc/kafka/secrets/kafka_server_jaas.conf:ro
-      - kafka_data:/var/lib/kafka/data
+      
     depends_on:
       - zookeeper
+    env_file:
+      - .env
 
   cvelixir:
     build: .
