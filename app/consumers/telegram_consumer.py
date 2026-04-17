@@ -6,11 +6,7 @@ from bot.alerts import send_alert
 import asyncio
 
 consumer = Consumer({
-    'bootstrap.servers': 'localhost:9092',
-    'security.protocol': 'SASL_PLAINTEXT',
-    'sasl.mechanisms': 'PLAIN',
-    'sasl.username': 'consumer',
-    'sasl.password': os.getenv('KAFKA_CONSUMER_PASSWORD'),
+    'bootstrap.servers': os.getenv('KAFKA_BROKER', 'kafka:9092'),
     'group.id': 'cvelixir-consumer',
     'auto.offset.reset': 'earliest'
 })

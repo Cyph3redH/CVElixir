@@ -4,11 +4,7 @@ import os
 from app.parser.nvd import search_critical_cve
 
 producer = Producer({
-    'bootstrap.servers': os.getenv('KAFKA_BROKER', 'kafka:9092'),
-    'security.protocol': 'SASL_PLAINTEXT',
-    'sasl.mechanism': 'PLAIN',
-    'sasl.username': 'producer',
-    'sasl.password': os.getenv('KAFKA_PRODUCER_PASSWORD')
+    'bootstrap.servers': 'kafka:9092',
 })
 
 def publish_nvd():
