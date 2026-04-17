@@ -7,54 +7,35 @@ services:
     volumes:
       - redis_data:/data
 
-  zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
-    container_name: zookeeper
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    volumes:
-      - zookeeper_data:/var/lib/zookeeper
-
   kafka:
-    image: confluentinc/cp-kafka:7.5.0
+    image: bitnami/kafka:3.6
     container_name: kafka
     ports:
       - "9092:9092"
     environment:
-      # 🔥 Убираем KAFKA_OPTS полностью
-      # KAFKA_OPTS: "..."
+      # Настройки Kafka
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_LISTENERS: SASL_PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: SASL_PLAINTEXT://localhost:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: SASL_PLAINTEXT:SASL_PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: SASL_PLAINTEXT
+      KAFKA_CFG_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
       
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Пользователи и пароли
+      KAFKA_CLIENT_USERS: producer,consumer
+      KAFKA_CLIENT_PASSWORDS: ${KAFKA_PRODUCER_PASSWORD},${KAFKA_CONSUMER_PASSWORD}
+      KAFKA_CFG_SUPER_USERS: User:admin
       
-      # 🔥 КРИТИЧЕСКИ ВАЖНО: Отключаем SASL для Zookeeper
-      KAFKA_ZOOKEEPER_SASL_ENABLED: "false"
-      KAFKA_ZOOKEEPER_SET_ACL: "false"
+      # Админ
+      KAFKA_CFG_ADMIN_USER: admin
+      KAFKA_CFG_ADMIN_PASSWORD: ${KAFKA_ADMIN_PASSWORD}
       
-      # Настройки для клиентов Kafka
-      KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://localhost:9092
-      KAFKA_LISTENERS: SASL_PLAINTEXT://0.0.0.0:9092
-      KAFKA_SECURITY_INTER_BROKER_PROTOCOL: SASL_PLAINTEXT
-      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
-      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
-      
-      # SASL для клиентов (через inline конфиг)
-      KAFKA_LISTENER_NAME_SASL_PLAINTEXT_PLAIN_SASL_JAAS_CONFIG: |
-        org.apache.kafka.common.security.plain.PlainLoginModule required \
-        username="admin" \
-        password="${KAFKA_ADMIN_PASSWORD}" \
-        user_admin="${KAFKA_ADMIN_PASSWORD}" \
-        user_producer="${KAFKA_PRODUCER_PASSWORD}" \
-        user_consumer="${KAFKA_CONSUMER_PASSWORD}";
-      
-      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
-      KAFKA_SUPER_USERS: "User:admin"
-      
-    depends_on:
-      - zookeeper
-    env_file:
-      - .env
+    volumes:
+      - kafka_data:/bitnami/kafka
 
   cvelixir:
     build: .
@@ -75,8 +56,6 @@ services:
     volumes:
       - ./logs:/app/logs
 
-# 🔥 ВОТ ЭТО ВАЖНО - объявление томов на корневом уровне
 volumes:
   kafka_data:
   redis_data:
-  zookeeper_data:
