@@ -1,26 +1,36 @@
-from kafka import KafkaConsumer
+from confluent_kafka import Consumer
 import json
 import os
 from app.core.redis_client import is_cve_sent, mark_cve_sent
 from bot.alerts import send_alert
 import asyncio
 
-consumer = KafkaConsumer(
-    'raw-security-events',
-    bootstrap_servers='localhost:9092',
-    security_protocol='SASL_PLAINTEXT',
-    sasl_mechanism='PLAIN',
-    sasl_plain_username='consumer',
-    sasl_plain_password=os.getenv('KAFKA_CONSUMER_PASSWORD'),
-    auto_offset_reset='earliest',  # Читать всё с начала темы
-    value_deserializer=lambda v: json.loads(v.decode('utf-8'))
-)
+consumer = Consumer({
+    'bootstrap.servers': 'localhost:9092',
+    'security.protocol': 'SASL_PLAINTEXT',
+    'sasl.mechanisms': 'PLAIN',
+    'sasl.username': 'consumer',
+    'sasl.password': os.getenv('KAFKA_CONSUMER_PASSWORD'),
+    'group.id': 'cvelixir-consumer',
+    'auto.offset.reset': 'earliest'
+})
+
+consumer.subscribe(['raw-security-events'])
 
 async def start_telegram_consumer():
     """Слушает Kafka, форматирует и отправляет в Telegram."""
     
-    for msg in consumer:
-        event = msg.value
+    while True:
+        msg = consumer.poll(1.0)  # Ждём сообщение 1 секунду
+        
+        if msg is None:
+            continue  # Если нет сообщений то ждём дальше
+        
+        if msg.error():
+            continue
+        
+        # Декодируем сообщение
+        event = json.loads(msg.value().decode('utf-8'))
         source = event.get('source')
 
         if source == 'nvd':

@@ -1,16 +1,15 @@
-from kafka import KafkaProducer
+from confluent_kafka import Producer
 import json
 import os
 from app.parser.nvd import search_critical_cve
 
-producer = KafkaProducer(
-    bootstrap_servers='localhost:9092',
-    security_protocol='SASL_PLAINTEXT',
-    sasl_mechanism='PLAIN',
-    sasl_plain_username='producer',
-    sasl_plain_password=os.getenv('KAFKA_PRODUCER_PASSWORD'),
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-)
+producer = Producer({
+    'bootstrap.servers': 'localhost:9092',
+    'security.protocol': 'SASL_PLAINTEXT',
+    'sasl.mechanisms': 'PLAIN',
+    'sasl.username': 'producer',
+    'sasl.password': os.getenv('KAFKA_PRODUCER_PASSWORD')
+})
 
 def publish_nvd():
     cves = search_critical_cve()
@@ -21,5 +20,5 @@ def publish_nvd():
             'cvss': cve['cvss'],
             'link': cve['link']
         }
-        producer.send('raw-security-events', value=event)
+        producer.produce('raw-security-events', value=json.dumps(event))
     producer.flush()
