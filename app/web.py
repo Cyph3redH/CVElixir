@@ -19,9 +19,9 @@ async def home(
     async with AsyncSessionLocal() as db:
         # Базовый запрос с подгрузкой дочерних таблиц
         query = select(Threat).options(
-            selectinload(Threat.cve_details),
-            selectinload(Threat.exploit_details)
-        )
+        selectinload(Threat.cve_details),
+        selectinload(Threat.exploit_details)
+        ).order_by(Threat.published.desc()).limit(100)
         
         # Фильтр по источнику (если передан)
         if source and source in [e.value for e in SourceEnum]:
