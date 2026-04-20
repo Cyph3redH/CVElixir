@@ -1,53 +1,47 @@
-from fastapi import FastAPI, Request, Query
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI, Query
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from app.core.database import AsyncSessionLocal
 from app.core.models import Threat, SourceEnum
 
-# Настройка шаблонов
-templates = Jinja2Templates(directory="app/templates")
-
-# Создаем FastAPI приложение
-app = FastAPI(title="Hate Threat Archive", version="1.0.0")
+app = FastAPI(title="Hate Threat Archive API", version="1.0.0")
 
 @app.get("/")
-async def home(
-    request: Request,
-    source: str | None = Query(None, description="Фильтр по источнику")
-):
+async def home(source: str | None = Query(None)):
     async with AsyncSessionLocal() as db:
-        # Базовый запрос с подгрузкой дочерних таблиц
         query = select(Threat).options(
-        selectinload(Threat.cve_details),
-        selectinload(Threat.exploit_details)
-        ).order_by(Threat.published.desc()).limit(100)
-        
-        # Фильтр по источнику (если передан)
+            selectinload(Threat.cve_details),
+            selectinload(Threat.exploit_details)
+        )
         if source and source in [e.value for e in SourceEnum]:
             query = query.where(Threat.source == SourceEnum(source))
         
-        # Сортировка: сначала новые
         query = query.order_by(Threat.published.desc()).limit(100)
-        
         result = await db.execute(query)
         threats = result.scalars().all()
         
-        # Считаем общее количество записей
-        count_query = select(func.count()).select_from(Threat)
-        if source and source in [e.value for e in SourceEnum]:
-            count_query = count_query.where(Threat.source == SourceEnum(source))
-        total_result = await db.execute(count_query)
-        total = total_result.scalar()
-    
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "threats": threats,
-        "total": total,
-        "source": source.value if hasattr(source, 'value') else source
-    })
+        # Превращаем в словари для JSON
+        data = []
+        for t in threats:
+            item = {
+                "id": str(t.id),
+                "source": t.source.value,
+                "title": t.title,
+                "link": t.link,
+                "published": t.published.isoformat() if t.published else None,
+            }
+            if t.cve_details:
+                item["cvss_score"] = t.cve_details.cvss_score
+                item["cve_id"] = t.cve_details.cve_id
+            if t.exploit_details:
+                item["platform"] = t.exploit_details.platform
+            data.append(item)
+        
+        count_result = await db.execute(select(func.count()).select_from(Threat))
+        total = count_result.scalar()
+        
+    return {"total": total, "threats": data}
 
 @app.get("/health")
 async def health():
-    """Эндпоинт для проверки, что сервер жив."""
     return {"status": "ok"}
