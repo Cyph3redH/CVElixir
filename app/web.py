@@ -44,7 +44,7 @@ async def home(
         "request": request,
         "threats": threats,
         "total": total,
-        "source": source
+        "source": source.value if hasattr(source, 'value') else source
     })
 
 @app.get("/health")
