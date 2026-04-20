@@ -3,8 +3,16 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from app.core.database import AsyncSessionLocal
 from app.core.models import Threat, SourceEnum
+from app.core.database import engine
+from app.core import models
 
 app = FastAPI(title="Hate Threat Archive API", version="1.0.0")
+
+@app.on_event("startup")
+async def init_db():
+    """Создает таблицы при запуске"""
+    async with engine.begin() as conn:
+        await conn.run_sync(models.Base.metadata.create_all)
 
 @app.get("/")
 async def home(source: str | None = Query(None)):
