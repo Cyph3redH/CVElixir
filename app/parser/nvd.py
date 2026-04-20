@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 
-
 def is_critical(score):
     return score >= 9.0
 
@@ -60,22 +59,6 @@ def search_critical_cve():
         critical_cve.append({
             'cve_id': cve_id,
             'cvss': score,
-            'link': full_url
+            'link': full_url,
         })
     return critical_cve
-
-# if __name__ == "__main__":
-#     result = search_critical_cve()  # Получаем то, что вернула функция
-    
-#     print("=" * 50)
-#     print("Found CVEs")
-#     print("=" * 50)
-    
-#     if result:
-#         print(f"Data Type: {type(result)}")
-#         print(f"Elements: {len(result)}")
-#         print("\nCVEs:")
-#         for i, cve in enumerate(result, 1):
-#             print(f"{i}. {cve['cve_id']} | CVSS: {cve['cvss']} | {cve['link']}")
-#     else:
-#         print("Error: func returned None")

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hate Threat Archive</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #0d1117; color: #c9d1d9; }
+        h1 { color: #58a6ff; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #30363d; padding: 10px; text-align: left; }
+        th { background: #161b22; }
+        tr:hover { background: #1f242c; }
+        a { color: #58a6ff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+        .badge-nvd { background: #238636; color: white; }
+        .badge-exploit { background: #da3633; color: white; }
+        .badge-hacker { background: #1f6feb; color: white; }
+        .filters { margin-bottom: 20px; }
+        .filters a { margin-right: 15px; }
+        .active { font-weight: bold; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>🗄️ Hate Threat Archive</h1>
+    <p>Всего записей в БД: <strong>{{ total }}</strong></p>
+
+    <div class="filters">
+        <a href="/" class="{{ 'active' if not source else '' }}">Все</a>
+        <a href="/?source=NVD" class="{{ 'active' if source == 'NVD' else '' }}">NVD</a>
+        <a href="/?source=EXPLOIT_DB" class="{{ 'active' if source == 'EXPLOIT_DB' else '' }}">ExploitDB</a>
+        <a href="/?source=HACKER_NEWS" class="{{ 'active' if source == 'HACKER_NEWS' else '' }}">HackerNews</a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Источник</th>
+                <th>Заголовок / ID</th>
+                <th>Детали</th>
+                <th>Дата</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in threats %}
+            <tr>
+                <td>
+                    {% if t.source.value == 'NVD' %}
+                        <span class="badge badge-nvd">NVD</span>
+                    {% elif t.source.value == 'EXPLOIT_DB' %}
+                        <span class="badge badge-exploit">ExploitDB</span>
+                    {% else %}
+                        <span class="badge badge-hacker">HackerNews</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ t.link }}" target="_blank">{{ t.title[:80] }}{% if t.title|length > 80 %}...{% endif %}</a>
+                </td>
+                <td>
+                    {% if t.cve_details %}
+                        CVSS: {{ t.cve_details.cvss_score }}
+                    {% elif t.exploit_details %}
+                        Платформа: {{ t.exploit_details.platform }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>{{ t.published.strftime('%Y-%m-%d %H:%M') if t.published else '—' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

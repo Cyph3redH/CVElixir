@@ -5,7 +5,67 @@ from app.parser.nvd import search_critical_cve
 from app.parser.hackernews import fetch_dangerous_articles
 from app.parser.exploitdb import fetch_latest_exploits
 from app.core.redis_client import is_cve_sent, mark_cve_sent
-import html
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.database import AsyncSessionLocal
+from app.core.models import Threat, CVEDetails, ExploitDetails, SourceEnum
+from datetime import datetime
+
+
+async def save_threat_to_db(
+    source: SourceEnum,
+    title: str,
+    link: str,
+    published,
+    details_data: dict # {'cvss_score': 9.8, 'cve_id': 'CVE-...'} или {'platform': 'Windows'}
+):
+    """
+    Универсальная функция сохранения угрозы в БД.
+    Проверяет link, создает Threat и дочернюю запись.
+    """
+    async with AsyncSessionLocal() as db:
+        # Проверяем, нет ли уже такого link
+        result = await db.execute(select(Threat).where(Threat.link == link))
+        existing_threat = result.scalar_one_or_none()
+        
+        if existing_threat:
+            return None
+        
+        # Создаем родительскую запись Threat
+        threat = Threat(
+            source=source,
+            title=title,
+            link=link,
+            published=published
+        )
+        db.add(threat)
+        await db.flush() # Чтобы БД сгенерировала threat.id
+        
+        # Создаем дочернюю запись в зависимости от источника
+        if source == SourceEnum.NVD:
+            cve_detail = CVEDetails(
+                id=threat.id, # Используем тот же UUID что и в Threat
+                cve_id=details_data.get('cve_id'),
+                cvss_score=details_data.get('cvss_score'),
+                vector=details_data.get('vector')
+            )
+            db.add(cve_detail)
+            
+        elif source == SourceEnum.EXPLOIT_DB:
+            exploit_detail = ExploitDetails(
+                id=threat.id,
+                platform=details_data.get('platform'),
+                exploit_code_link=details_data.get('exploit_code_link')
+            )
+            db.add(exploit_detail)
+            
+        elif source == SourceEnum.HACKER_NEWS:
+            # Для HackerNews пока нет отдельной таблицы деталей, просто Threat
+            pass
+        
+        await db.commit()
+        return threat
+
 
 @app.task
 def check_all_sources():
@@ -30,6 +90,17 @@ async def _async_check():
         await send_alert(msg)
         # Сохранение в кэш
         await mark_cve_sent(cve_id)
+
+        await save_threat_to_db(
+            source=SourceEnum.NVD,
+            title=cve['cve_id'],
+            link = cve['link'],
+            published = datetime.now(),   # cve['date']
+            details_data={
+                'cve_id': cve['cve_id'],
+                'cvss_score': cve['cvss']
+            }
+        )
     
     # Данные от Hacker News
     articles = fetch_dangerous_articles()
@@ -46,6 +117,14 @@ async def _async_check():
         await send_alert(msg)
         # Сохранение в кэш
         await mark_cve_sent(link)
+
+        await save_threat_to_db(
+            source=SourceEnum.HACKER_NEWS,
+            title=article['title'],
+            link=article['link'],
+            published=datetime.now(),
+            details_data={} # Пустой словарь
+        )
     
     # ExploitDB 
     exploits = fetch_latest_exploits()
@@ -65,3 +144,13 @@ async def _async_check():
                f"🔗 {exploit['link']}")
         await send_alert(msg)
         await mark_cve_sent(unique_id)
+
+        await save_threat_to_db(
+            source=SourceEnum.EXPLOIT_DB,
+            title=exploit['title'],
+            link=exploit['link'],
+            published=exploit['published'],
+            details_data={
+                'platform': exploit['platform']
+            }
+        )
