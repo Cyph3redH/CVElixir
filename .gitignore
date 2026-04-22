@@ -9,7 +9,7 @@ __pycache__/
 *.so
 .Python
 
-# Environment Variables (СЕКРЕТЫ!)
+# Environment Variables
 .env
 *.env
 !.env.example
