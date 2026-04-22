@@ -4,7 +4,7 @@ import os
 
 REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
 
-# Создаём Celery приложение
+# Создание Celery приложения
 app = Celery(
     'cvelixir',
     broker=f'redis://:{REDIS_PASSWORD}@redis:6379/0',

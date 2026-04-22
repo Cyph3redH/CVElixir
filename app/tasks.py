@@ -17,21 +17,21 @@ async def save_threat_to_db(
     title: str,
     link: str,
     published,
-    details_data: dict # {'cvss_score': 9.8, 'cve_id': 'CVE-...'} или {'platform': 'Windows'}
+    details_data: dict # Платформа, CVSS, CVE в формате списка
 ):
     """
     Универсальная функция сохранения угрозы в БД.
     Проверяет link, создает Threat и дочернюю запись.
     """
     async with AsyncSessionLocal() as db:
-        # Проверяем, нет ли уже такого link
+        # Проверяет существование записи
         result = await db.execute(select(Threat).where(Threat.link == link))
         existing_threat = result.scalar_one_or_none()
         
         if existing_threat:
             return None
         
-        # Создаем родительскую запись Threat
+        # Создает родительскую запись Threat
         threat = Threat(
             source=source,
             title=title,
@@ -39,12 +39,12 @@ async def save_threat_to_db(
             published=published
         )
         db.add(threat)
-        await db.flush() # Чтобы БД сгенерировала threat.id
+        await db.flush()    # Генерация UUID
         
-        # Создаем дочернюю запись в зависимости от источника
+        # Создает дочернюю запись в зависимости от источника
         if source == SourceEnum.NVD:
             cve_detail = CVEDetails(
-                id=threat.id, # Используем тот же UUID что и в Threat
+                id=threat.id, # Использует тот же UUID что и в Threat
                 cve_id=details_data.get('cve_id'),
                 cvss_score=details_data.get('cvss_score'),
                 vector=details_data.get('vector')
@@ -80,7 +80,6 @@ async def _async_check():
         cve_id = cve['cve_id']
 
         if await is_cve_sent(cve_id):
-            print(f"⏭️ CVE {cve_id} уже отправлялась, пропускаем")
             continue
         
         msg = f"⚠️ Обнаружена критическая уязвимость в базе NVD\n\n"
@@ -95,7 +94,7 @@ async def _async_check():
             source=SourceEnum.NVD,
             title=cve['cve_id'],
             link = cve['link'],
-            published = datetime.now(),   # cve['date']
+            published = datetime.now(),
             details_data={
                 'cve_id': cve['cve_id'],
                 'cvss_score': cve['cvss']
@@ -123,13 +122,13 @@ async def _async_check():
             title=article['title'],
             link=article['link'],
             published=datetime.now(),
-            details_data={} # Пустой словарь
+            details_data={}    # Деталей для HackersNews нету
         )
     
     # ExploitDB 
     exploits = fetch_latest_exploits()
     for exploit in exploits:
-        # Используем title+link как уникальный ключ
+        # Использует title+link как уникальный ключ
         unique_id = f"exploit_{exploit['link'].split('/')[-1]}"
         
         if await is_cve_sent(unique_id):

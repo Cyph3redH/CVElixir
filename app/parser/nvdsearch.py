@@ -1,6 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 
+"""===Парсер CVSS от переданной CVE==="""
+
 def search_CVSS_CVE(cve):
     url = f"https://nvd.nist.gov/vuln/detail/{cve}"
     headers = {'User-Agent': 'Mozilla/5.0'}

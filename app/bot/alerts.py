@@ -7,7 +7,7 @@ import random
 load_dotenv()
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-MY_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")  # личный ID
+MY_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 HACKER_IMAGE_URL=["https://images.interestingengineering.com/img/iea/QjOdpBaKOd/jbs-restoring-systems-with-backup-vulnerabilities-remain.jpg",
                   "https://i.ytimg.com/vi/nz7eU-Zcwbo/maxresdefault.jpg",
                   "https://cdn.mos.cms.futurecdn.net/WhwNyWzQHzVnY49UeT8UsS.jpg",
@@ -18,8 +18,8 @@ def get_random_image():
     """Возвращает случайную ссылку на картинку"""
     return random.choice(HACKER_IMAGE_URL)
 
-# БЕЛЫЙ СПИСОК
-ALLOWED_USERS = [int(MY_CHAT_ID)]  # Можно добавить ещё ID через запятую
+# Белый список ID
+ALLOWED_USERS = [int(MY_CHAT_ID)]
 
 async def send_alert(message: str, target_chat_id: int = None):
     """
@@ -34,7 +34,7 @@ async def send_alert(message: str, target_chat_id: int = None):
 
     image_url = get_random_image()
     
-    # Если цель не указана — шлём всем разрешённым
+    # Если цель не указана то шлет всем разрешённым
     if target_chat_id is None:
         for chat_id in ALLOWED_USERS:
             await bot.send_photo(
@@ -45,9 +45,8 @@ async def send_alert(message: str, target_chat_id: int = None):
             )
         return
     
-    # Если цель указана — проверяем, есть ли она в белом списке
+    # Если цель указана проверяет есть ли она в белом списке
     if target_chat_id not in ALLOWED_USERS:
-        print(f"Доступ запрещён для {target_chat_id}")
         return
     
     await bot.send_photo(
@@ -59,9 +58,7 @@ async def send_alert(message: str, target_chat_id: int = None):
 
 # Тест
 if __name__ == "__main__":
-    # asyncio.run(send_alert("<b>CVElixir запущен!</b>"))
-    
-    # Бесконечное ожидание (чтобы контейнер не падал)
+    # Бесконечное ожидание чтобы контейнер не падал
     import time
     while True:
         time.sleep(3600)

@@ -7,5 +7,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./app ./app
 
-# Запускаем Celery Worker + Beat (в одном процессе)
+# Запускаем Celery Worker + Beat в одном процессе
 CMD ["celery", "-A", "app.tasks", "worker", "--loglevel=info", "--beat"]

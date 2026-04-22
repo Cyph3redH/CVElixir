@@ -9,9 +9,9 @@ DATABASE_URL = os.getenv(
 engine = create_async_engine(DATABASE_URL, echo=True)
 
 AsyncSessionLocal = sessionmaker(
-    engine,     # Какую БД использовать
-    class_=AsyncSession,    # Асинхронная сессия
-    expire_on_commit=False    # не "забывать" данные после коммита
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False
 )
 
 Base = declarative_base()

@@ -12,19 +12,21 @@ class SourceEnum(str, enum.Enum):
     EXPLOIT_DB = "EXPLOIT_DB"
     HACKER_NEWS = "HACKER_NEWS"
 
+# Родительская модель которая описывает поля принадлежащие каждой дочерней
 class Threat(Base):
     __tablename__ = "threats"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     source = Column(Enum(SourceEnum), nullable=False)
     title = Column(String, nullable=False)
-    link = Column(String, unique=True, nullable=False, index=True) # index ускорит поиск
+    link = Column(String, unique=True, nullable=False, index=True)
     published = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, server_default=func.now()) # Когда записали в БД
+    created_at = Column(DateTime, server_default=func.now())
 
     cve_details = relationship("CVEDetails", back_populates="threat", uselist=False, cascade="all, delete-orphan")
     exploit_details = relationship("ExploitDetails", back_populates="threat", uselist=False, cascade="all, delete-orphan")
 
+# Дочерние модели с уникальными полями
 class CVEDetails(Base):
     __tablename__ = "cve_details"
 

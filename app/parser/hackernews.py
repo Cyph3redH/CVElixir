@@ -1,6 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 
+"""===Парсер HackersNews==="""
+
 DANGER_KEYWORDS = ['CVE', '0-day', 'RCE', 'critical', 'exploit', 'Zero-Day']
 
 def is_dangerous(text):

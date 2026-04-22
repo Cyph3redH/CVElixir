@@ -1,6 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 
+"""===Парсер NVD==="""
+
 def is_critical(score):
     return score >= 9.0
 
@@ -19,14 +21,6 @@ def search_critical_cve():
 
         right_col = li.find('div', class_='col-lg-3')
         left_col = li.find('div', class_='col-lg-9')
-        # Парсинг вектора
-        # cvss_link = li.find('a', {'data-testid': re.compile(r'vuln-cvss3-link-\d+')})
-        # vector = None
-        # if cvss_link:
-        # href = cvss_link.get('href')
-        # parsed = urlparse(href)
-        # params = parse_qs(parsed.query)
-        # vector = params.get('vector', [None])[0]
 
         if not right_col or not left_col:
             continue
@@ -68,6 +62,5 @@ def search_critical_cve():
             'cve_id': cve_id,
             'cvss': score,
             'link': full_url,
-            # 'vector': vector
         })
     return critical_cve
