@@ -39,6 +39,8 @@
     POSTGRES_PASSWORD= пароль от вашей БД
     POSTGRES_DB= установите имя БД
     DATABASE_URL= URL вашей БД
+    POSTGRES_HOST=postgres
+    POSTGRES_PORT=5432
 ---
 
 4. Запустите проект:

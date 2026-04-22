@@ -5,6 +5,11 @@ from sqlalchemy import pool
 
 from alembic import context
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -38,12 +43,16 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
-    context.configure(
-        url=url,
-        target_metadata=target_metadata,
-        literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
+    url = config.get_main_option("sqlalchemy.url").replace(
+        "${POSTGRES_USER}", os.getenv("POSTGRES_USER", "postgres")
+    ).replace(
+        "${POSTGRES_PASSWORD}", os.getenv("POSTGRES_PASSWORD", "")
+    ).replace(
+        "${POSTGRES_HOST}", os.getenv("POSTGRES_HOST", "localhost")
+    ).replace(
+        "${POSTGRES_PORT}", os.getenv("POSTGRES_PORT", "5432")
+    ).replace(
+        "${POSTGRES_DB}", os.getenv("POSTGRES_DB", "threats")
     )
 
     with context.begin_transaction():
